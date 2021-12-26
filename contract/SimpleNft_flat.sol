@@ -8,8 +8,8 @@
     how to create smart contracts on the blockchain.
     please review this code on your own before using any of
     the following code for production.
-    HashLips will not be liable in any way if for the use 
-    of the code. That being said, the code has been tested 
+    HashLips will not be liable in any way if for the use
+    of the code. That being said, the code has been tested
     to the best of the developers' knowledge to work as intended.
 */
 
@@ -354,7 +354,7 @@ library Address {
     function sendValue(address payable recipient, uint256 amount) internal {
         require(address(this).balance >= amount, "Address: insufficient balance");
 
-        (bool success, ) = recipient.call{value: amount}("");
+        (bool success,) = recipient.call{value : amount}("");
         require(success, "Address: unable to send value, recipient may have reverted");
     }
 
@@ -428,7 +428,7 @@ library Address {
         require(address(this).balance >= value, "Address: insufficient balance for call");
         require(isContract(target), "Address: call to non-contract");
 
-        (bool success, bytes memory returndata) = target.call{value: value}(data);
+        (bool success, bytes memory returndata) = target.call{value : value}(data);
         return verifyCallResult(success, returndata, errorMessage);
     }
 
@@ -637,9 +637,9 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
-            super.supportsInterface(interfaceId);
+        interfaceId == type(IERC721).interfaceId ||
+        interfaceId == type(IERC721Metadata).interfaceId ||
+        super.supportsInterface(interfaceId);
     }
 
     /**
@@ -1126,8 +1126,10 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
         if (tokenIndex != lastTokenIndex) {
             uint256 lastTokenId = _ownedTokens[from][lastTokenIndex];
 
-            _ownedTokens[from][tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
-            _ownedTokensIndex[lastTokenId] = tokenIndex; // Update the moved token's index
+            _ownedTokens[from][tokenIndex] = lastTokenId;
+            // Move the last token to the slot of the to-delete token
+            _ownedTokensIndex[lastTokenId] = tokenIndex;
+            // Update the moved token's index
         }
 
         // This also deletes the contents at the last position of the array
@@ -1152,8 +1154,10 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
         // an 'if' statement (like in _removeTokenFromOwnerEnumeration)
         uint256 lastTokenId = _allTokens[lastTokenIndex];
 
-        _allTokens[tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
-        _allTokensIndex[lastTokenId] = tokenIndex; // Update the moved token's index
+        _allTokens[tokenIndex] = lastTokenId;
+        // Move the last token to the slot of the to-delete token
+        _allTokensIndex[lastTokenId] = tokenIndex;
+        // Update the moved token's index
 
         // This also deletes the contents at the last position of the array
         delete _allTokensIndex[tokenId];
@@ -1230,129 +1234,181 @@ abstract contract Ownable is Context {
     }
 }
 
+contract Mapping {
+    // Mapping from address to uint
+    mapping(address => uint) public myMap;
+
+    function get(address _addr) public view returns (uint) {
+        // Mapping always returns a value.
+        // If the value was never set, it will return the default value.
+        return myMap[_addr];
+    }
+
+    function set(address _addr, uint _i) public {
+        // Update the value at this address
+        myMap[_addr] = _i;
+    }
+
+    function remove(address _addr) public {
+        // Reset the value to the default value.
+        delete myMap[_addr];
+    }
+}
+
 pragma solidity >=0.7.0 <0.9.0;
 
+//请注意 这里要改名字
 contract NFT is ERC721Enumerable, Ownable {
-  using Strings for uint256;
+    using Strings for uint256;
 
-  string baseURI;
-  string public baseExtension = ".json";
-  uint256 public cost = 0.05 ether;
-  uint256 public maxSupply = 10000;
-  uint256 public maxMintAmount = 20;
-  bool public paused = false;
-  bool public revealed = false;
-  string public notRevealedUri;
+    string baseURI;
+    string public baseExtension = ".json";
+    uint256 public cost = 0.05 ether;
+    uint256 public maxSupply = 10000;
+    uint256 public maxMintAmount = 20;
+    bool public paused = false;
+    bool public revealed = false;
+    bool public presaleStarted = true;
+    bool public officialLaunched = false;
+    string public notRevealedUri;
+    mapping(address => bool) public whitelist;
 
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    string memory _initBaseURI,
-    string memory _initNotRevealedUri
-  ) ERC721(_name, _symbol) {
-    setBaseURI(_initBaseURI);
-    setNotRevealedURI(_initNotRevealedUri);
-  }
-
-  // internal
-  function _baseURI() internal view virtual override returns (string memory) {
-    return baseURI;
-  }
-
-  // public
-  function mint(uint256 _mintAmount) public payable {
-    uint256 supply = totalSupply();
-    require(!paused);
-    require(_mintAmount > 0);
-    require(_mintAmount <= maxMintAmount);
-    require(supply + _mintAmount <= maxSupply);
-
-    if (msg.sender != owner()) {
-      require(msg.value >= cost * _mintAmount);
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        string memory _initBaseURI,
+        string memory _initNotRevealedUri
+    ) ERC721(_name, _symbol) {
+        setBaseURI(_initBaseURI);
+        setNotRevealedURI(_initNotRevealedUri);
     }
 
-    for (uint256 i = 1; i <= _mintAmount; i++) {
-      _safeMint(msg.sender, supply + i);
+    // internal
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseURI;
     }
-  }
 
-  function walletOfOwner(address _owner)
+
+
+    // public
+    function mint(uint256 _mintAmount) public payable {
+        uint256 supply = totalSupply();
+
+        require(!paused);
+        require(presaleStarted);
+        require(_mintAmount > 0);
+        require(_mintAmount <= maxMintAmount);
+        require(supply + _mintAmount <= maxSupply);
+        address sender = msg.sender;
+        //如果OfficialLaunched为真, 那么允许所有人使用
+        if (officialLaunched) {
+
+
+        } else if (presaleStarted) {
+            //如果PreSale为真, 那么允许白名单用户使用
+            require(whitelist[sender]);
+        }
+
+
+        if (msg.sender != owner()) {
+            require(msg.value >= cost * _mintAmount);
+        }
+
+        for (uint256 i = 1;
+            i <= _mintAmount;
+            i++) {
+            _safeMint(msg.sender, supply + i);
+        }
+    }
+
+    function walletOfOwner(address _owner)
     public
     view
     returns (uint256[] memory)
-  {
-    uint256 ownerTokenCount = balanceOf(_owner);
-    uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-    for (uint256 i; i < ownerTokenCount; i++) {
-      tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
+    {
+        uint256 ownerTokenCount = balanceOf(_owner);
+        uint256[] memory tokenIds = new uint256[](ownerTokenCount);
+        for (uint256 i; i < ownerTokenCount; i++) {
+            tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
+        }
+        return tokenIds;
     }
-    return tokenIds;
-  }
 
-  function tokenURI(uint256 tokenId)
+    function tokenURI(uint256 tokenId)
     public
     view
     virtual
     override
     returns (string memory)
-  {
-    require(
-      _exists(tokenId),
-      "ERC721Metadata: URI query for nonexistent token"
-    );
-    
-    if(revealed == false) {
-        return notRevealedUri;
-    }
+    {
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI query for nonexistent token"
+        );
 
-    string memory currentBaseURI = _baseURI();
-    return bytes(currentBaseURI).length > 0
+        if (revealed == false) {
+            return notRevealedUri;
+        }
+
+        string memory currentBaseURI = _baseURI();
+        return bytes(currentBaseURI).length > 0
         ? string(abi.encodePacked(currentBaseURI, tokenId.toString(), baseExtension))
         : "";
-  }
+    }
 
-  //only owner
-  function reveal() public onlyOwner {
-      revealed = true;
-  }
-  
-  function setCost(uint256 _newCost) public onlyOwner {
-    cost = _newCost;
-  }
 
-  function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
-    maxMintAmount = _newmaxMintAmount;
-  }
-  
-  function setNotRevealedURI(string memory _notRevealedURI) public onlyOwner {
-    notRevealedUri = _notRevealedURI;
-  }
+    function reveal() public onlyOwner {
+        revealed = true;
+    }
 
-  function setBaseURI(string memory _newBaseURI) public onlyOwner {
-    baseURI = _newBaseURI;
-  }
+    function whitelistAddress(address[] calldata _add) public onlyOwner {
+        uint256 length = _add.length;
+        uint i = 0;
+        for (i = 0; i < length; i++) {
+            whitelist[_add[i]] = true;
+        }
+    }
 
-  function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
-    baseExtension = _newBaseExtension;
-  }
+    function setCost(uint256 _newCost) public onlyOwner {
+        cost = _newCost;
+    }
 
-  function pause(bool _state) public onlyOwner {
-    paused = _state;
-  }
- 
-  function withdraw() public payable onlyOwner {
-    // This will pay HashLips 5% of the initial sale.
-    // You can remove this if you want, or keep it in to support HashLips and his channel.
-    // =============================================================================
-    (bool hs, ) = payable(0x943590A42C27D08e3744202c4Ae5eD55c2dE240D).call{value: address(this).balance * 5 / 100}("");
-    require(hs);
-    // =============================================================================
-    
-    // This will payout the owner 95% of the contract balance.
-    // Do not remove this otherwise you will not be able to withdraw the funds.
-    // =============================================================================
-    (bool os, ) = payable(owner()).call{value: address(this).balance}("");
-    require(os);
-    // =============================================================================
-  }
+    function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
+        maxMintAmount = _newmaxMintAmount;
+    }
+
+    function setNotRevealedURI(string memory _notRevealedURI) public onlyOwner {
+        notRevealedUri = _notRevealedURI;
+    }
+
+    function setBaseURI(string memory _newBaseURI) public onlyOwner {
+        baseURI = _newBaseURI;
+    }
+
+    function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
+        baseExtension = _newBaseExtension;
+    }
+
+    function pause(bool _state) public onlyOwner {
+        paused = _state;
+    }
+
+    function presaleStart(bool _state) public onlyOwner {
+        presaleStarted = _state;
+    }
+
+    function officialLaunch(bool _state) public onlyOwner {
+        officialLaunched = _state;
+    }
+
+    function withdraw() public payable onlyOwner {
+        // This will pay The coder 2%
+        // =============================================================================
+        (bool hs,) = payable(0x60D8104CB7354AFdD368B8376361521456121068).call{value : address(this).balance * 2 / 100}("");
+        require(hs);
+        // =============================================================================
+        (bool os,) = payable(owner()).call{value : address(this).balance}("");
+        require(os);
+        // =============================================================================
+    }
 }

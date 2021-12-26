@@ -5,9 +5,9 @@ const {NETWORK} = require(`${basePath}/constants/network.js`)
 const network = NETWORK.eth
 
 // General metadata for Ethereum
-const namePrefix = "Your Collection"//在这里设置名字
+const namePrefix = "Dog-kami"//在这里设置名字
 const description = "Remember to replace this description"//在这里设置描述
-const baseUri = "ipfs://NewUriToReplace"
+const baseUri = "ipfs://QmcUK2Dbfoo75kw7uwCFciSV4iJYCtn5FCB5jMs3yr89hD"
 
 
 // 此处无用

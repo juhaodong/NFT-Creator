@@ -11,6 +11,10 @@ function build () {
   startCreating()
 }
 
+function findSameDNA () {
+  console.log('to be continue.')
+}
+
 console.log(
   '*******************************************************\n' +
   'NFT-Cli'.bgCyan + ' Version:' + version.bgRed + '\n' +
@@ -19,5 +23,6 @@ console.log(
 )
 program.command('build').action(build)
 program.command('upload').action(startUploadFile)
+program.command('findSameDNA').action(findSameDNA)
 
 program.parse(process.argv)
